@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: grant_authorities_to_sitnial_user
+      author: a.sitnikova
+      runAlways: true
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 1
+            sql: SELECT COUNT(*) FROM pg_roles WHERE rolname='sitnial'
+      changes:
+        - tagDatabase:
+            tag: grant_authorities_to_sitnial_user
+        - sql:
+            sql: GRANT ALL ON ALL TABLES IN SCHEMA "public" to sitnial;
+      rollback: empty

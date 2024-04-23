@@ -1,0 +1,139 @@
+databaseChangeLog:
+  - changeSet:
+      id: create_table_users
+      author: a.sitnikova
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: users
+      changes:
+        - tagDatabase:
+            tag: create_table_users
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: create_table_roles
+      author: a.sitnikova
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: roles
+      changes:
+        - tagDatabase:
+            tag: create_table_roles
+        - createTable:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: role_name
+                  type: varchar(5)
+                  constraints:
+                    nullable: false
+                    unique: true
+  - changeSet:
+      id: insert_table_roles_admin
+      author: a.sitnikova
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: select count(*) from roles where role_name = 'ADMIN'
+      changes:
+        - tagDatabase:
+            tag: insert_table_roles_admin
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: role_name
+                  value: ADMIN
+  - changeSet:
+      id: insert_table_roles_user
+      author: a.sitnikova
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: select count(*) from roles where role_name = 'USER'
+      changes:
+        - tagDatabase:
+            tag: insert_table_roles_user
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: role_name
+                  value: USER
+      rollback:
+        - sql:
+            sql: delete from roles where role_name = 'USER'
+  - changeSet:
+      id: create_table_user_role
+      author: a.sitnikova
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: user_role
+      changes:
+        - tagDatabase:
+            tag: create_table_user_role
+        - createTable:
+            tableName: user_role
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_role_user_id
+                    references: users(id)
+                    deleteCascade: true
+              - column:
+                  name: role_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_role_role_id
+                    references: roles(id)
+                    deleteCascade: true
